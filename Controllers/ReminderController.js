@@ -117,8 +117,8 @@ const scheduleReminderEmail = (email) => {
                             const mailOptions = {
                                 from: process.env.AUTH_EMAIL,
                                 to: email,
-                                subject: "⏰⏰⏰ [Team DatesInformer] You Have A Pending Task",
-                                html: `<p>This Email Is Concerned To remind You about the task ${mailMessage} please do it carefully thank you<p><br/> <p>Regards [TEAM DatesInfomer] </p>`
+                                subject: "⏰⏰⏰ [Team DatesInformer] !!! You Have A Pending Task",
+                                html: `<p>This Email Is Concerned To remind You about the task<b> ${mailMessage} </b> please do it carefully <br /> Thank You<p> <br/> <p>Regards [TEAM DatesInfomer] </p>`
                             };
 
                             await mailTransporter.sendMail(mailOptions);

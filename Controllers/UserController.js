@@ -186,6 +186,9 @@ const forgotPasswordController = async (req, res) => {
             })
         }
 
+        // deleting previous otps sended
+        await EmailVerifyModel.deleteMany({ email: email })
+
         await sendOtpVerificationEmail(email)
 
         return res.json({
@@ -435,7 +438,52 @@ const verifyEmailResetController = async (req, res) => {
     }
 }
 
-module.exports = { loginController, registerController, getCurrentUserData, forgotPasswordController, changeResetPasswordController, verifyEmailController, resendOtpController, verifyEmailResetController }
+const logOutController = async(req, res) => {
+    const {email} = req.body;
+    
+    if (!email) {
+        return res.json({
+          status: "EMPTY_CREDENTIALS",
+          message: "Please enter a valid email.",
+        });
+    }
+
+    try {
+        const isUserAlreadyExists = await UserModel.findOne({ email });
+
+        if (!isUserAlreadyExists) {
+            return res.json({
+                status: "NO_ACCOUNT_EXIST",
+                message: 
+                "Sorry !! No Account Exists With Provided Email Address"
+            })
+        }
+
+        UserModel.updateOne({email: email}, {
+            $set: {
+                isLoggedIn: false
+            }
+        }).then(() => {
+            return res.json({
+                status: "LOGOUT_SUCCESS",
+                message: "user logged out successfully"
+            })
+        }).catch((err) => {
+            return res.json({
+                status: "LOGOUT_FAILURE",
+                message: err.message
+            })
+        })
+    }
+    catch (error) {
+        return res.json({
+            status: "ERROR_OCCURED",
+            message: error.message
+        })
+    }
+}
+
+module.exports = { loginController, registerController, getCurrentUserData, forgotPasswordController, changeResetPasswordController, verifyEmailController, resendOtpController, verifyEmailResetController, logOutController }
 
 // for logout functionality -> firstly delete the token and redirect/navigate to /login route
 
