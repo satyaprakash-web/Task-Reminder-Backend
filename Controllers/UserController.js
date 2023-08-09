@@ -114,10 +114,11 @@ const loginController = async (req, res) => {
             return res.json({
                 status: "PASSWORD_NOT_MATCHED",
                 message: 
-                "Sorry! You entered an incorrect password. Please enter the correct password or try resetting it.",
+                "Incorrect password. Please enter the correct password or reset it.",
             });
         }
     } catch (error) {
+        console.log(error);
         return res.json({
             status: "ERROR_OCCURED",
             message: error.message,
@@ -127,10 +128,11 @@ const loginController = async (req, res) => {
 
 const registerController = async (req, res) => {
     const { name, email, password } = req.body
+
     if (!name || !email || !password) {
         return res.json({
             status: "EMPTY_CREDENTIALS",
-            message: "Please enter a valid and non-null name, email, and password."
+            message: "Please enter a valid name, email, and password."
         })
     }
 
@@ -144,17 +146,20 @@ const registerController = async (req, res) => {
                 "An account already exists with this email. Please try a new email or proceed to login."
             })
         }
-
+// password provided by the user is hashed using bcryptjs.hash with a salt factor of 10 before storing it in the database.
         const encryptedPassword = await bcryptjs.hash(password, 10);
 
         const newUser = await UserModel.create({
             name: name,
             email: email,
-            password: encryptedPassword
+            password: encryptedPassword,
+            isEmailVerified: false,
+            isLoggedIn: false,
         })
 
         if (newUser) {
-            sendOtpVerificationEmail(newUser.email)
+            sendOtpVerificationEmail(newUser.email)  
+            //  send an email for account verification. 
             return res.json({
                 status: "REGISTRATION_SUCCESSFUL",
                 _id: newUser._id,
@@ -189,6 +194,7 @@ const forgotPasswordController = async (req, res) => {
         // deleting previous otps sended
         await EmailVerifyModel.deleteMany({ email: email })
 
+        // Send OTP verification email
         await sendOtpVerificationEmail(email)
 
         return res.json({
@@ -228,7 +234,7 @@ const changeResetPasswordController = async (req, res) => {
         ).then(() => {
             return res.json({
                 status: "PASSWORD_CHANGED_SUCCESSFULLY",
-                message: "Your password has been changed successfully in our database, and you can now proceed to the login page."
+                message: "Your password has been changed successfully , and now you can proceed to the login page."
             })
         }).catch(() => {
             return res.json({
@@ -245,6 +251,7 @@ const changeResetPasswordController = async (req, res) => {
     }
 }
 
+// generates an OTP, hashes it, sends an OTP verification email, and creates a new record in the EmailVerifyModel to track the verification process.
 const sendOtpVerificationEmail = async (email) => {
     try {
         const OTP = `${Math.floor(Math.random() * 900000 + 100000)}`
@@ -253,7 +260,7 @@ const sendOtpVerificationEmail = async (email) => {
             from: process.env.AUTH_EMAIL,
             to: email,
             subject: "Please Verify Your Email Address [Team DatesInformer]",
-            html: `<p>Enter <b> ${OTP} </b> on the website to complete the Sign Up Process. the above is valid for <b> 10 minutes</b>.</p>`
+            html: `<p>Enter <b> ${OTP} </b> on the website to complete the Sign Up Process. The above is valid for <b> 10 minutes</b>.</p>`
         }
 
         const encryptedOTP = await bcryptjs.hash(OTP, 10)
@@ -282,6 +289,7 @@ const sendOtpVerificationEmail = async (email) => {
     }
 }
 
+// function handles the email verification process using the OTP that was sent to the user's email address.
 const verifyEmailController = async (req, res) => {
     try {
         const { email, otp } = req.body
@@ -350,6 +358,7 @@ const verifyEmailController = async (req, res) => {
     }
 }
 
+// handles resending an OTP for email verification. It checks if a valid email is provided, deletes any previous verification records, and then sends a new OTP verification email.
 const resendOtpController = async (req, res) => {
     try {
         const { email } = req.body
@@ -376,6 +385,7 @@ const resendOtpController = async (req, res) => {
     }
 }
 
+//  verifies the provided OTP for email addresses during password reset requests. It performs similar operations as the previous verifyEmailController, but here it doesn't update the user's email verification status or log-in status.
 const verifyEmailResetController = async (req, res) => {
     try {
         const { email, otp } = req.body
@@ -455,7 +465,7 @@ const logOutController = async(req, res) => {
             return res.json({
                 status: "NO_ACCOUNT_EXIST",
                 message: 
-                "Sorry !! No Account Exists With Provided Email Address"
+                "Sorry! No account exists with the provided email address"
             })
         }
 

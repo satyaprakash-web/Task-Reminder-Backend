@@ -1,6 +1,7 @@
 const ReminderModel = require('../Models/ReminderModel');
 const nodemailer = require('nodemailer')
 
+// The transporter will be configured to use Gmail's SMTP server for sending emails.
 const mailTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
