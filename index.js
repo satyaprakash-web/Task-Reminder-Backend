@@ -43,7 +43,7 @@ app.post("/api/user/delete", async (req, res) => {
     res.status(500).json({ status: "ERROR", message: "Failed to delete user" });
   }
 });
-
+//
 app.listen(PORT, () => {
   console.log(`server is running on port http://localhost:${PORT}`);
 });

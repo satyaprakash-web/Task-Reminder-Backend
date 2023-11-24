@@ -164,5 +164,5 @@ const scheduleReminderEmail = (email) => {
         }
     }, 1000);
 }
-
+//
 module.exports = { getAllRemindersController, addRemindersController, deleteRemindersController, deleteUserController};
