@@ -1,5 +1,6 @@
 const ReminderModel = require('../Models/ReminderModel');
 const nodemailer = require('nodemailer')
+const UserModel = require('../Models/UserModel')
 
 // The transporter will be configured to use Gmail's SMTP server for sending emails.
 const mailTransporter = nodemailer.createTransport({
@@ -101,6 +102,35 @@ const deleteRemindersController = async (req, res) => {
     }
 };
 
+const deleteUserController = async (req, res) => {
+    const { email } = req.body; 
+
+    if (!email) {
+        return res.json({
+            status: "INVALID_REQUEST",
+            message: "Please provide an email to delete the user"
+        });
+    }
+
+    try {
+        // Delete user from UserModel
+        await UserModel.deleteOne({ email: email });
+        
+        // Delete user's reminders from ReminderModel
+        await ReminderModel.deleteMany({ email: email });
+        return res.json({
+            status: "USER_DELETED_SUCCESSFULLY",
+            message: "User and associated data deleted successfully"
+        });
+    } catch (err) {
+        console.log(err);
+        return res.json({
+            status: "ERROR_OCCURED",
+            message: err.message
+        });
+    }
+};
+
 
 const scheduleReminderEmail = (email) => {
     setInterval(async () => {
@@ -135,4 +165,4 @@ const scheduleReminderEmail = (email) => {
     }, 1000);
 }
 
-module.exports = { getAllRemindersController, addRemindersController, deleteRemindersController };
+module.exports = { getAllRemindersController, addRemindersController, deleteRemindersController, deleteUserController};
